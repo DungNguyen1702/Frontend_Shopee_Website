@@ -1,48 +1,51 @@
 import React, { useState, useLayoutEffect, useEffect } from "react";
 import Review from './review/review'
 import Header from "components/header";
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import productApi from "api/productAPI";
+import cartApi from "api/cartAPI"
 import Footer from "components/footer";
 import './product_view.scss'
 // import Review from './review.js'
 import img1 from '../../../assets/images/product_detail1.jpg'
 import img2 from '../../../assets/images/product_detail2.jpg'
-import img3 from '../../../assets/images/product_detail3.jpg'
-import img4 from '../../../assets/images/product_detail4.jpg'
 import freeship from '../../../assets/images/freeship.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faHeart, faCableCar, faCartShopping, faCommentsDollar} from '@fortawesome/free-solid-svg-icons'
 import { faFacebook, faInstagram, faTelegram, faPinterest } from '@fortawesome/free-brands-svg-icons'
-import ReactDOM from 'react-dom'
 import {Rating} from '@mui/material'
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import formatPrice from "components/format-price";
+
+let productBuy ;
+let select ;
 
 function ProductInfo () {
-    
+    const navigate = useNavigate()
     const  {productId}  = useParams();
     
     const [product, setProduct] = useState()
- 
+
+    const [picture, setPicture] = useState()
+    const [array, setArray] = useState([])
+
     useLayoutEffect(() => {
         const fetchProductInfo = async () => {
             try {
                 const productResult =  await productApi.getProductById(productId);
-                setProduct(productResult);
-                console.log(productResult)
+                setProduct(productResult.data);
+                setPicture(productResult.data.images[0].image)
 
             } catch (error) {
                 console.log(error);
             }
         }
         fetchProductInfo();
+        productBuy = {};
+        select = 0;
     }, [productId])
-
-    
-    const [picture, setPicture] = useState()
-
 
 
     const [like , setLike] = useState(false)
@@ -62,13 +65,11 @@ function ProductInfo () {
         e.preventDefault();
         const requestPost = async () => {
             try {
-                const response = await axios.post('http://localhost:8000/api/cart/add-to-cart', {
-                    user_id : 3,
-                    product_detail_id : 3,
+                const response = await cartApi.postCart({
+                    product_detail_id : parseInt(productId),
                     quantity : count
-                    
-
                 })
+                console.log(response)
                 toast.success('Thêm vào giỏ hàng thành công', {
                     position: "top-center",
                     autoClose: 5000,
@@ -100,9 +101,7 @@ function ProductInfo () {
         requestPost();
     }
 
-
     return (
-       
         <div style={{margin: '0', padding: '0', boxSizing: 'border-box'}}>
             <Header position = "relative"/>
             {product&&
@@ -111,13 +110,13 @@ function ProductInfo () {
                 <div className='pro_detail-container'>
             <div className='pro_detail-content'>
                 <div className='pro_detail-image'>
-                    <img src = {picture} alt = 'anh dai dien' className='pro_detail-main-img' />
+                    <img src = {picture}  className='pro_detail-main-img' />
                     <div className='pro_detail-img_list'>
-                        <img src = {product.images[1]} alt = 'anh ao'  className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[1])}/>
-                        <img src = {product.images[2]} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[2])}/>
-                        <img src = {product.images[2]} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[2])}/>
-                        <img src = {product.images[1]} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[1])}/>
-                        <img src = {product.images[1]} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[1])}/>
+                        <img src = {product.images[1].image} alt = 'anh ao'  className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[1].image)}/>
+                        <img src = {product.images[2].image} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[2].image)}/>
+                        <img src = {product.images[3].image} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[3].image)}/>
+                        <img src = {product.images[1].image} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[1].image)}/>
+                        <img src = {product.images[2].image} alt = 'anh ao' className='pro_detail-img-item' onMouseOver={()=>setPicture(product.images[2].image)}/>
                     </div>
                     <div className='pro_detail-share'>
                         <div className='pro_detail-social'>
@@ -134,20 +133,20 @@ function ProductInfo () {
                                 style = {{color : like  ? '#ff424f' : 'pink'}}
                                 onClick={()=> setLike(!like)}
                             />
-                          Đã thích (2.9K)
+                          Đã thích ({product.likes})
                         </div>
                     </div>
                 </div>
                 <div className='pro_detail-body'>
                     <h3 className='pro_detail-header'>
                         <span className = 'pro_detail-des'>Yêu thích</span>
-                            {product.name}
+                            {product.product_name}
                     </h3>
                     <div className='pro_detail-rating'>
                         <div className='pro_detail-left'>
 
                             <div className='pro_detail-star'>
-                            <span style = {{color : '#ee4d2d', textDecoration : 'underline', marginRight: '6px', fontSize : '18px'}}>4.7</span>
+                            <span style = {{color : '#ee4d2d', textDecoration : 'underline', marginRight: '6px', fontSize : '18px'}}>{product.star}</span>
                             <Rating name="rating-read" defaultValue={5} precision={0.5} size = "small" readOnly />
                             </div>
                             <div className='pro_detail-lines'>
@@ -161,7 +160,7 @@ function ProductInfo () {
 
                             </div>
                             <div className='pro_detail-sold'>
-                                    <span>6k</span> 
+                                    <span>{product.quan_sold}</span> 
                                     <span style = {{color :'#767676', fontSize : '14px', marginLeft : '4px'}}>Đã bán</span>
                             </div>
                         </div>
@@ -173,8 +172,10 @@ function ProductInfo () {
                         <div className='pro_detail-price_detail'>
 
                             <span className='pro_detail-realprice'>
-                                <sup style={{textDecoration : 'underline'}}>đ</sup>{product.salePrice}</span> 
-                            <span className='pro_detail-sale'>{product.promotionPercent}% giảm</span>
+                            {   
+                                formatPrice(product.price)
+                                }</span> 
+                            <span className='pro_detail-sale'>40% giảm</span>
                         </div>
                         <div className='pro_detail-price-about'>
                             <div style={{display : 'flex', alignItems : 'center'}}>
@@ -320,7 +321,8 @@ function ProductInfo () {
                             />
                             Thêm vào giỏ hàng
                         </button>
-                        <button className='pro_detail-buy'>Mua ngay</button>
+                        <button className='pro_detail-buy'
+                        >Mua ngay</button>
                     </div>
                 </div>
 
@@ -357,7 +359,7 @@ function ProductInfo () {
                     </div>
                     <div className='pro_detail-para'>
                         <p>
-                            {product.shortDescription}
+                            {product.description}
                         </p>
 
 
@@ -386,7 +388,7 @@ function ProductInfo () {
                 </div>
 
             </div>
-            {<Review/>}
+            {<Review data = {productId}/>}
         </div>
                            
             </div>}
@@ -396,5 +398,5 @@ function ProductInfo () {
         </div>
     )
 }
-
+export {productBuy, select}
 export default ProductInfo;

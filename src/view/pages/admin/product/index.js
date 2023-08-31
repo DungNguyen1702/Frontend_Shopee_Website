@@ -1,13 +1,12 @@
 import '../admin.scss'
 import {useState, useEffect} from 'react'
 import axios from 'axios'
-
+import adminproductApi from 'api/adminproductAPI'
+import { faCommentsDollar } from '@fortawesome/free-solid-svg-icons'
 
 
 
 function AdminProduct (){
-
-    
     const [product, setProduct] = useState([])
     
     const [editID, setEditID] = useState(-1)
@@ -22,25 +21,15 @@ function AdminProduct (){
         .catch(err => console.log(err));
     }, [])
 
+
     function removeProduct(id) {
         const newProducts = product.filter((item)=> item.id !== id);
         setProduct(newProducts)
-        // const deleteProducts = async (id) => {
-        //     try {
-        //         let res = await axios.delete("https://fakestoreapi.com/products", {
-        //             data: { id }
-        //         });
-        //         console.log("Product was deleted",res);
-        //     } catch(err) {
-        //         console.log("there was an error", err)
-        //     }
-        // }
-        // deleteProducts()
     }
 
      const arrProducts = product.map((item)=> (
             item.id === editID ? 
-            <EditMember item = {item} product = {product} setProduct = {setProduct}/>
+            <EditProduct item = {item} product = {product} setProduct = {setProduct}/>
             :
             <table className='admin-product-list'>
                 <tr key = {item.id}>
@@ -62,7 +51,7 @@ function AdminProduct (){
     function handleEdit (id){
         setEditID(id)
     }
-    function EditMember({item , product, setProduct}){
+    function EditProduct({item , product, setProduct}){
         function handleTitle(e){
             const title = e.target.value;
             const updatedData = product.map((d)=> 

@@ -5,22 +5,22 @@ import Product from "components/product";
 import productApi from "api/productAPI";
 import { Link } from "react-router-dom";
 import FlashSaleProduct from "./flash-sale-card";
+import { PropertySafetyFilled } from "@ant-design/icons";
 
 function FlashSale(){
     
   const [products, setProducts] = useState([]);
  
 
-  useEffect(()=> {
+    useEffect(()=> {
       const fetchProducts = async () => {
-          const params = {_limit: 30, _page: 3}
-          const productList = await productApi.getAllProduct(params);
-          setProducts(productList.data);
+          const productList = await productApi.getAllProduct();
+          setProducts(productList.data.rows);
       }
       fetchProducts();
 
 
-  }, [])
+    }, [])
     return (
         <div className="flash-sale-wrapper">
             <div className="flash-sale_banner">
@@ -40,11 +40,11 @@ function FlashSale(){
                           return (
                           <Link key = {post.id} to={`/product-view/${post.id}`}>
                             <li>
-                                {console.log(post)}
                             <FlashSaleProduct
-                                imageURL = {post.images[0]}
-                                name = {post.name}
-                                price = {'$' + post.salePrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                                imageURL = { post.images && post.images.length > 0 && post.images[0].image || ''}
+                                name = {post.product_name}
+                                saleprice = { post.salePrice && '$' + post.salePrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") || '0đ'}
+                                price = {post.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
                             />
                             </li>
                               
